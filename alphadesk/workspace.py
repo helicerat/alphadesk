@@ -82,7 +82,12 @@ def open_desk(root: str | Path) -> Workspace:
         panel = alpaca.load(syms, start=a.get("start", "2016-01-01"), cutoff=cfg.get("model_cutoff", "2026-06-01"))
         library = {"Mom12m": "cs_rank(delay(log(close), 21) - delay(log(close), 252))",
                    "STreversal": "cs_rank(-pct_change(close, 21))"}
-        external = french.factors().drop(columns=["RF"])   # daily; OSAP monthly is used by /replicate
+        external = [french.factors().drop(columns=["RF"])]   # daily Fama-French 5 + momentum
+        try:
+            from .data import osap
+            external.append(osap.ls_returns())                # monthly, 212 published predictors
+        except Exception as e:  # offline: the daily factors still run
+            print(f"Open Source Asset Pricing not loaded ({e}); novelty uses Fama-French only")
     else:
         raise ValueError(f"unknown data source {src}")
     desk = Desk(panel, TrialLog(root / "trials"), library=library, external=external, seed=cfg.get("seed", 7))

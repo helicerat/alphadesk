@@ -256,13 +256,17 @@ class Desk:
             done(7, "na", "no factor library loaded")
 
         # 7b published factors (French, OSAP): returns-based, any frequency ---
-        if self.external is not None:
-            ext = self._external_check(ls["gross"], w.start, w.valid_start)
-            verdict.setdefault("novelty", {})["published"] = ext
-            if ext and ext["max_abs_corr"] >= cfg.novelty_max_corr:
+        externals = self.external if isinstance(self.external, (list, tuple)) else (
+            [self.external] if self.external is not None else [])
+        for ext_df in externals:
+            ext = self._external_check(ls["gross"], w.start, w.valid_start, ext_df)
+            verdict.setdefault("novelty", {}).setdefault("published_all", []).append(ext)
+            if ext and "top" in ext:
+                verdict["novelty"]["published"] = ext
+            if ext and ext.get("max_abs_corr", 0) >= cfg.novelty_max_corr:
                 done(7, "fail", f"already published: returns move with {ext['top']} (ρ {ext['top_corr']:.2f})")
                 return self._finish(verdict, card, campaign, sig, S, hold, ls["net"])
-            if ext and ext["t_alpha"] < cfg.novelty_min_alpha_t:
+            if ext and ext.get("t_alpha", 99) < cfg.novelty_min_alpha_t:
                 done(7, "fail", f"explained by published factors: α t {ext['t_alpha']:.1f} after {ext['n_factors']} factors")
                 return self._finish(verdict, card, campaign, sig, S, hold, ls["net"])
 
@@ -345,9 +349,8 @@ class Desk:
         verdict["survived"] = True
         return self._finish(verdict, card, campaign, sig, recorded=True)
 
-    def _external_check(self, gross, a, b, max_factors: int = 12):
+    def _external_check(self, gross, a, b, ext, max_factors: int = 12):
         import pandas as pd
-        ext = self.external
         r = pd.Series(gross[a:b], index=self.panel.dates[a:b]).dropna()
         if r.empty:
             return None
