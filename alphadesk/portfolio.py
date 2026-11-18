@@ -53,7 +53,7 @@ def long_short(signal: np.ndarray, ret: np.ndarray, hold: int = 1, cost_bps: flo
         gross[t + 1] = g
         net[t + 1] = g - traded * cost_bps / 1e4
         long_leg[t + 1] = float(np.clip(w, 0, None) @ r)
-        short_leg[t + 1] = float(-np.clip(w, None, 0) @ r)
+        short_leg[t + 1] = float(np.clip(w, None, 0) @ r)   # P&L of the short side
     return {"gross": gross, "net": net, "turnover": turnover, "long": long_leg, "short": short_leg}
 
 

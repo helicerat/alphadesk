@@ -85,7 +85,10 @@ def cmd_demo(args):
     where = ", ".join(f"{n} at check {k}" for k, n in sorted(died.items(), key=lambda x: (x[0] is None, x[0])) if k is not None)
     print(f"  {R}✕{X} {len(noise)} noise      {surv} survive · {where}")
     (out / "verdicts.json").write_text(json.dumps(verdicts, indent=2, default=float), encoding="utf-8")
-    print(f"\n{D}verdicts {out / 'verdicts.json'} · {time.time() - t0:.0f}s{X}")
+    from .report import write_campaign
+    idx = write_campaign(desk, "demo", verdicts, {c["id"]: c for c in cards}, out / "report")
+    print(f"\n{B}report{X}  {idx}")
+    print(f"{D}{time.time() - t0:.0f}s{X}")
     return 0
 
 
@@ -126,8 +129,7 @@ def cmd_status(args):
     for x in g:
         mark = f"{G}✓{X}" if x["check"] == "survived" else f"{R}✕{X}"
         print(f"  {mark} {x['card']:<24} {D}{x['why']}{X}")
-    print(f"
-{len(surv)} survived, {len(g) - len(surv)} in the graveyard")
+    print(f"\n{len(surv)} survived, {len(g) - len(surv)} in the graveyard")
     return 0
 
 
