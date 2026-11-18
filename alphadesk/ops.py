@@ -27,7 +27,9 @@ def _rolling(x: Array, w: int, fn) -> Array:
         return out
     # sliding_window_view gives windows ending at rows w-1 .. T-1
     view = np.lib.stride_tricks.sliding_window_view(x, w, axis=0)  # (T-w+1, N, w)
-    with np.errstate(all="ignore"):
+    import warnings
+    with np.errstate(all="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)   # windows that are all NaN stay NaN
         out[w - 1 :] = fn(view)
     return out
 

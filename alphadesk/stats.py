@@ -46,17 +46,25 @@ def rowwise_rank_ic(signal: np.ndarray, fwd: np.ndarray, min_names: int = 20) ->
 
 
 def ic_summary(ic: np.ndarray, step: int = 1) -> dict:
-    """Mean IC and a t-stat from non-overlapping observations (every ``step`` rows)."""
+    """Mean IC over all rows, and a t-stat that only counts non-overlapping
+    observations: the standard error comes from every ``step``-th row, averaged
+    over the ``step`` possible starting offsets, so the sign of t always matches
+    the sign of the mean."""
     x = ic[np.isfinite(ic)]
-    xs = ic[::step]
-    xs = xs[np.isfinite(xs)]
-    if len(xs) < 3:
-        return {"mean": float("nan"), "t": float("nan"), "ir": float("nan"), "pos": float("nan"), "n": int(len(xs))}
+    if len(x) < 3 * step:
+        return {"mean": float("nan"), "t": float("nan"), "ir": float("nan"), "pos": float("nan"), "n": 0}
     mean = float(np.mean(x))
-    sd = float(np.std(xs, ddof=1))
-    t = float(np.mean(xs) / (sd / math.sqrt(len(xs)))) if sd > 0 else float("nan")
-    return {"mean": mean, "t": t, "ir": float(np.mean(xs) / sd) if sd > 0 else float("nan"),
-            "pos": float(np.mean(xs > 0)), "n": int(len(xs))}
+    sds, ns = [], []
+    for o in range(step):
+        xs = ic[o::step]
+        xs = xs[np.isfinite(xs)]
+        if len(xs) >= 3:
+            sds.append(float(np.std(xs, ddof=1)))
+            ns.append(len(xs))
+    sd, n = float(np.mean(sds)), float(np.mean(ns))
+    t = float(mean / (sd / math.sqrt(n))) if sd > 0 else float("nan")
+    return {"mean": mean, "t": t, "ir": float(mean / sd) if sd > 0 else float("nan"),
+            "pos": float(np.mean(x > 0)), "n": int(n)}
 
 
 def sharpe(r: np.ndarray) -> float:

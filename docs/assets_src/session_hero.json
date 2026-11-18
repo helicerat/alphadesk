@@ -1,0 +1,22 @@
+{"model": "Sonnet", "cwd": "~/research · desk: synthetic, 500 assets, 2,520 days",
+ "prompt": "/alphadesk:hypothesis stocks with a high quality score keep outperforming for about a week, because investors are slow to update on it",
+ "steps": [
+  {"t": "16:50:16", "who": "reason gate, before data", "lines": ["counterparty: slow-updating investors", "edge: behavioral · fades when the score is widely followed"]},
+  {"t": "   ·    ", "who": "coder", "note": "typed formula + contract", "lines": ["cs_rank(quality) · hold 5", "expect: + quality"]},
+  {"t": "   ·    ", "who": "reconciler", "note": "fresh context, sees the formula only", "tone": "warn", "lines": ["ranks by same-day quality, high = high", "inputs: quality, lag 0 · no windows", "trap: not neutralized, sector tilt passes through"]},
+  {"t": "16:50:55", "who": "alphadesk.submit", "note": "through the MCP wall", "lines": [
+    "0 reason · 1 idea↔code · 2 point-in-time   ✓",
+    "3 IC 0.052, t 18.7",
+    "4 IC at hold 5: 0.052, peak 0.060",
+    "5 net Sharpe 2.04, breakeven 41 bps",
+    "6 without smallest 30%: IC 0.051, t 15.1",
+    "7 max ρ -0.05 (STreversal), α t 13.5",
+    "8 4/4 same sign, validation IC 0.052",
+    "9 DSR 1.00 · 10 n/a: 1 variant",
+    "11 post-cutoff window: pass",
+    "12 holdout: sealed"]},
+  {"t": "16:50:56", "who": "verdict", "lines": ["survived · a research candidate, not alpha yet"]},
+  {"t": "16:51:07", "who": "alphadesk report", "lines": ["desk/reports/c001/quality_underreaction_1w.html"]},
+  {"t": "   ·    ", "who": "holdout", "tone": "warn", "lines": ["yours to open, once, in your own terminal:", "alphadesk freeze  →  alphadesk holdout c001"]}
+ ],
+ "status": "● campaign c001 · trial log N 1 · validation queries 1"}

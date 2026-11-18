@@ -18,6 +18,8 @@ Open source · MIT · Claude Code plugin + Python package · Windows and Linux, 
 
 ![An evidence pack next to the Claude Code session that produced it](docs/assets/hero.png)
 
+*A real run on the built-in synthetic market: `/alphadesk:hypothesis` in Claude Code on the right, the evidence pack `alphadesk report` built from it on the left.*
+
 ---
 
 ## How it works
@@ -60,10 +62,10 @@ $ alphadesk demo
 synthetic market   500 assets · 2,520 days · planted daily IC 0.03 / 0.02 / 0.01
 campaign           44 hypotheses
 
-  ✓ quality       IC 0.054  t 20.7  DSR 1.00  found
-  ✓ flow          IC 0.033  t 12.9  DSR 1.00  found
-  ~ drift         IC 0.017  t  5.9  died at 3 rank IC: below the 0.02 floor
-  ✕ trend_follow  IC 0.120  t 12.2  died at 7 novelty: ranks stocks like Mom12m (ρ 1.00)
+  ✓ quality       IC 0.054  t 19.4  DSR 1.00  found
+  ✓ flow          IC 0.033  t 11.5  DSR 1.00  found
+  ~ drift         IC 0.017  t  5.8  died at 3 rank IC: below the 0.02 floor
+  ✕ trend_follow  IC 0.120  t 13.4  died at 7 novelty: ranks stocks like Mom12m (ρ 1.00)
   ✕ 40 noise      0 survive · 40 at check 3
 
 report  desk/demo/report/index.html
@@ -103,7 +105,7 @@ A research system that finds alpha in pure noise is worse than no system. `alpha
 | 1,000 random strategies, 1 year | reports the best one: Sharpe 3.48 | 0 survive deflation |
 | 40 noise characteristics, all checks | finds a few "signals" | 0 survive |
 | planted signals, daily IC 0.03 and 0.02 | misses them | both found |
-| the same IC 0.02 signal on 60 stocks, 2 years | "finds" it | rejected, t 2.2: too little data to prove it |
+| the same IC 0.02 signal on 60 stocks, 2 years | "finds" it | rejected, t 1.7: too little data to prove it |
 | a feature that secretly reads tomorrow's return (IC 1.00) | passes every statistical test | killed at check 2, before any statistics |
 | every operator, data cut at t vs full | values before t change | bit-identical |
 | a rolling mean with a centered window | ships it | caught |
