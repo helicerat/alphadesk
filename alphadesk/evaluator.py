@@ -395,4 +395,11 @@ class Desk:
                         "family": verdict["family"], "formula": card.get("formula"),
                         "survived": verdict["survived"], "died_at": verdict["died_at"],
                         "summary": verdict["summary"] if not verdict["survived"] else "survived"})
+        # keep the full verdict and the card for reports (the evaluator's side of the wall)
+        import json as _json
+        vdir = self.log.root / "verdicts" / campaign
+        vdir.mkdir(parents=True, exist_ok=True)
+        safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in str(card.get("id", "card")))
+        (vdir / f"{safe}.json").write_text(_json.dumps({"card": card, "verdict": verdict}, default=float),
+                                           encoding="utf-8")
         return verdict

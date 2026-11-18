@@ -133,6 +133,54 @@ def cmd_status(args):
     return 0
 
 
+def _campaign_verdicts(ws, campaign):
+    vdir = ws.desk.log.root / "verdicts" / campaign
+    out = []
+    for f in sorted(vdir.glob("*.json")):
+        out.append(json.loads(f.read_text(encoding="utf-8")))
+    return out
+
+
+def cmd_report(args):
+    from .report import write_campaign
+    from .workspace import open_desk
+    ws = open_desk(args.desk)
+    c = args.campaign or ws.campaign
+    items = _campaign_verdicts(ws, c)
+    if not items:
+        print(f"no verdicts for campaign {c} yet")
+        return 1
+    verdicts = [x["verdict"] for x in items]
+    cards = {x["card"]["id"]: x["card"] for x in items}
+    out = Path(args.desk) / "reports" / c
+    idx = write_campaign(ws.desk, c, verdicts, cards, out)
+    print(f"{B}report{X}  {idx}")
+    for x in items:
+        if x["verdict"]["survived"]:
+            print(f"  {G}✓{X} {out / (x['card']['id'] + '.html')}")
+    return 0
+
+
+def cmd_freeze(args):
+    """Freeze the survivor list before the holdout: written and hashed into the trial log."""
+    import hashlib
+    from .workspace import open_desk
+    ws = open_desk(args.desk)
+    c = args.campaign or ws.campaign
+    surv = sorted((x["card"]["id"], x["card"]["formula"]) for x in _campaign_verdicts(ws, c) if x["verdict"]["survived"])
+    h = hashlib.sha256(json.dumps(surv).encode()).hexdigest()[:16]
+    ws.desk.log.write({"kind": "freeze", "campaign": c, "survivors": surv, "hash": h})
+    brief = Path(args.desk) / "holdout_brief.md"
+    lines = [f"# Holdout brief · campaign {c}", "", f"Frozen list hash: `{h}`", "",
+             "Survivors going into the holdout:", ""] + [f"- `{i}`: `{f}`" for i, f in surv] + [
+             "", "Run this yourself, in your own terminal, once:", "", f"    alphadesk holdout {c}", "",
+             "Claude can't run it: a plugin hook blocks the command and it needs a real terminal."]
+    brief.write_text("\n".join(lines), encoding="utf-8")
+    print(f"frozen {len(surv)} survivor(s), hash {h}")
+    print(f"brief: {brief}")
+    return 0
+
+
 def cmd_holdout(args):
     """Open the sealed holdout. Only a person at a real terminal can run it."""
     import numpy as np
@@ -144,7 +192,12 @@ def cmd_holdout(args):
         return 2
     ws = open_desk(args.desk)
     c = args.campaign
-    surv = [x for x in graveyard(ws, c) if x["check"] == "survived"]
+    surv = [{"card": x["card"]["id"], "formula": x["card"]["formula"], "hold": int(x["card"].get("hold", 1))}
+            for x in _campaign_verdicts(ws, c) if x["verdict"]["survived"]]
+    frozen = [e for e in ws.desk.log.entries(c, kind="freeze")]
+    if not frozen:
+        print(f"Freeze the survivor list first: alphadesk freeze --campaign {c}")
+        return 1
     opened = ws.desk.log.count(c)["holdout_opened"]
     print(f"{B}holdout for campaign {c}{X}: {len(surv)} survivor(s). Opened before: {opened} time(s).")
     if opened:
@@ -160,8 +213,7 @@ def cmd_holdout(args):
     for x in surv:
         sig = dsl.compile_signal(x["formula"], ws.panel)
         S = sig.evaluate(ws.panel)
-        card = next((e for e in ws.desk.log.entries(c, kind="trial") if e.get("card") == x["card"]), {})
-        hold = 5
+        hold = x["hold"]
         ic = stats.ic_summary(ws.desk._ic(S, hold, w.holdout_start, w.end), step=hold)
         ic_dev = stats.ic_summary(ws.desk._ic(S, hold, w.start, w.valid_start), step=hold)
         keep = ic["mean"] / ic_dev["mean"] if ic_dev["mean"] else float("nan")
@@ -208,6 +260,16 @@ def main(argv=None):
     st_.add_argument("--desk", default="desk")
     st_.add_argument("--campaign")
     st_.set_defaults(fn=cmd_status)
+
+    rp = sub.add_parser("report", help="build the campaign page and an evidence pack per survivor")
+    rp.add_argument("--desk", default="desk")
+    rp.add_argument("--campaign")
+    rp.set_defaults(fn=cmd_report)
+
+    fz = sub.add_parser("freeze", help="freeze the survivor list before the holdout")
+    fz.add_argument("--desk", default="desk")
+    fz.add_argument("--campaign")
+    fz.set_defaults(fn=cmd_freeze)
 
     h = sub.add_parser("holdout", help="open the sealed holdout, once, from your own terminal")
     h.add_argument("campaign")

@@ -22,7 +22,7 @@ BLOCKED = [
      "The holdout opens only from your own terminal. Ask the user to run `alphadesk holdout <campaign>`."),
     (re.compile(re.escape(HOME) + r"|/\.alphadesk(/|$|\s|['\"])"),
      "The data folder is on the evaluator's side of the wall. Use the alphadesk MCP tools instead."),
-    (re.compile(r"desk/+trials/+(returns|trials\.jsonl)"),
+    (re.compile(r"desk/+trials(/|$|\s|['\"])"),
      "The trial log is the evaluator's. Use the `status` and `graveyard` MCP tools."),
 ]
 
