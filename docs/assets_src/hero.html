@@ -1,0 +1,265 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;height:1000px;background:#000;font-family:Inter,"Segoe UI",sans-serif;color:#d6dae0;overflow:hidden;position:relative}
+.term,.tb .t,table,.chk{font-family:"JetBrains Mono",Consolas,monospace}
+.menubar{height:26px;background:#000;display:flex;align-items:center;padding:0 14px;font-size:12px;color:#eef1f4;gap:18px;border-bottom:1px solid #000}
+.menubar b{color:#fff;font-weight:700}.menubar .r{margin-left:auto;color:#8b949e}
+.win{position:absolute;top:38px;bottom:12px;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px #262626}
+.left{left:12px;width:1046px;background:#000}
+.right{left:1068px;width:520px;background:#000}
+.tb{height:30px;background:#0a0a0a;display:flex;align-items:center;padding:0 12px;gap:7px;border-bottom:1px solid #1c1c1c}
+.dot{width:10px;height:10px;border-radius:50%}
+.tb .t{margin-left:12px;font-size:11px;color:#8b949e;background:#000;border:1px solid #30363d;border-radius:6px;padding:2px 10px}
+.tb .tabs{margin-left:auto;display:flex;gap:4px;font-size:11px}
+.tb .tabs span{padding:2px 9px;border-radius:5px;color:#8b949e}.tb .tabs .on{background:#21262d;color:#f0f6fc}
+.pad{padding:10px 12px}
+.g{color:#3fe06e}.r{color:#ff7b72}.a{color:#e3b341}.b{color:#79c0ff}.m{color:#a3abb5}.w{color:#f0f6fc}
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px}
+.hdr .id{font:600 10.5px "JetBrains Mono",monospace;color:#a3abb5;letter-spacing:.08em}
+.hdr h1{font-size:22px;color:#f5f8fc;font-weight:800;letter-spacing:-.02em;margin:1px 0 5px}
+.hdr h1 small{font:500 11.5px "JetBrains Mono",monospace;color:#a3abb5;margin-left:10px;letter-spacing:0}
+.chips{display:flex;gap:5px}
+.chip{font-size:10.5px;border:1px solid #25282d;border-radius:999px;padding:1px 8px;color:#dfe4ea;background:#070707}
+.verdict{text-align:right}
+.vb{display:inline-flex;gap:8px;align-items:center;background:#0f2a18;border:1px solid #2ea043;color:#3fe06e;font-weight:800;font-size:13px;padding:5px 12px;border-radius:6px;letter-spacing:.06em}
+.verdict .s{font:500 10.5px "JetBrains Mono",monospace;color:#a3abb5;margin-top:5px}
+.kpis{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:8px}
+.kpi{background:#070707;border:1px solid #1d2026;border-radius:7px;padding:5px 9px}
+.kpi .k{font-size:9.8px;color:#a3abb5;white-space:nowrap}
+.kpi .v{font:700 15px "JetBrains Mono",monospace;color:#f0f6fc;margin-top:1px}
+.kpi .v small{display:block;font-size:9.6px;color:#a3abb5;font-weight:500;margin-top:1px;white-space:nowrap}
+.row{display:grid;gap:8px;margin-bottom:8px}
+.panel{background:#070707;border:1px solid #1d2026;border-radius:8px;padding:8px 10px;position:relative}
+.ph{font-size:9.8px;color:#a3abb5;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;display:flex;justify-content:space-between;font-weight:600}
+.ph span{text-transform:none;letter-spacing:0;font-weight:500}
+table{width:100%;border-collapse:collapse;font-size:10.6px}
+td,th{padding:2.6px 3px;text-align:right;border-bottom:1px solid #141619;white-space:nowrap}
+th{color:#a3abb5;font-weight:500;font-size:9.6px}
+td:first-child,th:first-child{text-align:left;color:#dfe4ea}
+.chk{font-size:10.1px;line-height:1.62}
+.chk div{display:flex;justify-content:space-between;gap:6px}
+.chk .n{color:#8c949e;width:18px;display:inline-block}
+.note{font-size:10px;color:#e3b341;margin-top:5px;line-height:1.35}
+.term{padding:10px 14px;font-size:10.9px;line-height:1.48;color:#eef1f4}
+.cc{font-family:Inter;color:#e8835a;font-size:15px;font-weight:800;display:flex;justify-content:space-between;align-items:baseline}
+.cc span{font:500 10.5px "JetBrains Mono";color:#a3abb5}
+.path{color:#8c949e;font-size:10.3px;border-bottom:1px solid #1d232c;padding:3px 0 6px;margin-bottom:6px;display:flex;justify-content:space-between}
+.prompt{color:#f0f6fc;margin-bottom:6px}.prompt span{color:#8c949e}
+.ln{display:flex;gap:8px;margin-top:3px}
+.ln .ts{color:#6b737d;flex:none}
+.ln .h{color:#f0f6fc;font-weight:600}
+.ind{padding-left:62px;color:#dfe4ea}
+.vt{margin:4px 0 4px 0;border:1px solid #262c36;border-radius:5px;overflow:hidden}
+.vt table{font-size:10.2px}
+.vt td,.vt th{padding:2.1px 6px}
+.vt tr.ok td{background:#0f2a18}
+.gy{padding-left:62px;font-size:10.4px;margin:2px 0 2px}.gy div{display:flex;align-items:center;gap:8px;line-height:1.55}.gy span{width:150px;color:#dfe4ea}.gy i{display:block;height:8px;background:#ff7b72;border-radius:2px;opacity:.85}.gy b{color:#ff7b72;font-weight:600}
+.seal{margin-top:8px;border:1px solid #9e6a03;background:#231a05;border-radius:5px;padding:6px 9px;color:#e3b341;font-size:10.6px}
+.seal code{color:#fff;background:#0d1117;padding:1px 6px;border-radius:3px}
+.status{position:absolute;bottom:0;left:0;right:0;border-top:1px solid #1c1c1c;padding:6px 14px;font:500 10.3px "JetBrains Mono";color:#a3abb5;background:#000;display:flex;justify-content:space-between}
+</style></head>
+<body>
+<div class="menubar"><b>alphadesk</b><span>File</span><span>Edit</span><span>View</span><span>Window</span><span class="r">Mon 23 Nov · 14:07</span></div>
+
+<div class="win left">
+  <div class="tb"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="t">desk/c004/26.html</span><div class="tabs"><span class="on">evidence</span><span>graveyard 14</span><span>trial log</span><span>code</span></div></div>
+  <div class="pad">
+    <div class="hdr">
+      <div>
+        <div class="id">CAMPAIGN C004 · CANDIDATE #26 · EVIDENCE PACK</div>
+        <h1>Accrual quality × filing lag<small>cs_rank(accr_quality) × (lag_days ≤ 45), sector-neutral</small></h1>
+        <div class="chips"><span class="chip">US equities · 1,940 stocks</span><span class="chip">monthly rebalance · decile long-short</span><span class="chip">paper replicated, then extended</span><span class="chip">trial N 62 · N_eff 38</span><span class="chip">seed 4 · data a91f…c2</span></div>
+      </div>
+      <div class="verdict"><div class="vb">✓ SURVIVOR · 11 / 11</div><div class="s">holdout sealed · opens once, by you</div></div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k">rank IC · t</div><div class="v">0.031<small>t 3.6</small></div></div>
+      <div class="kpi"><div class="k">IC IR · mo &gt; 0</div><div class="v">0.32<small>61%</small></div></div>
+      <div class="kpi"><div class="k">L/S Sharpe, net</div><div class="v">1.08<small>gross 1.41</small></div></div>
+      <div class="kpi"><div class="k">deflated Sharpe</div><div class="v g">0.97<small>≥ 0.95</small></div></div>
+      <div class="kpi"><div class="k">P(overfit) PBO</div><div class="v">0.21<small>CSCV 16</small></div></div>
+      <div class="kpi"><div class="k">breakeven cost</div><div class="v">41<small>bps / side</small></div></div>
+      <div class="kpi"><div class="k">turnover</div><div class="v">22%<small>/ month</small></div></div>
+      <div class="kpi"><div class="k">max ρ · 212 known</div><div class="v">0.46<small>α t 2.9</small></div></div>
+      <div class="kpi"><div class="k">max drawdown</div><div class="v r">−11%<small>4 mo</small></div></div>
+      <div class="kpi"><div class="k">capacity est.</div><div class="v">$180M<small>1% ADV</small></div></div>
+    </div>
+
+    <div class="row" style="grid-template-columns:1.62fr 1fr">
+      <div class="panel">
+        <div class="ph">Long-short, net of 15 bps per side <span><span class="b">━ candidate</span> &nbsp;<span class="m">━ AbnormalAccruals (nearest known)</span></span></div>
+        <svg id="eq" width="604" height="232"></svg>
+      </div>
+      <div class="panel">
+        <div class="ph">Decile returns, annualized <span>monotonic 9 / 9 steps</span></div>
+        <svg id="dec" width="364" height="232"></svg>
+      </div>
+    </div>
+
+    <div class="row" style="grid-template-columns:1fr 1fr 1fr 1.18fr">
+      <div class="panel"><div class="ph">IC by horizon <span>peak 20d = hold</span></div><svg id="ich" width="214" height="150"></svg></div>
+      <div class="panel"><div class="ph">Rolling 12m IC <span>dips, never flips</span></div><svg id="ric" width="214" height="150"></svg></div>
+      <div class="panel"><div class="ph">Sharpe vs cost <span>bps per side</span></div><svg id="cost" width="214" height="150"></svg></div>
+      <div class="panel"><div class="ph">Explained by known factors <span>2016–26</span></div>
+        <table>
+          <tr><th>factor</th><th>β</th><th>t</th></tr>
+          <tr><td>market</td><td>0.03</td><td>0.6</td></tr>
+          <tr><td>size SMB</td><td>0.11</td><td>1.4</td></tr>
+          <tr><td>value HML</td><td>−0.04</td><td>−0.5</td></tr>
+          <tr><td>profit RMW</td><td>0.18</td><td>1.9</td></tr>
+          <tr><td>momentum</td><td>−0.02</td><td>−0.3</td></tr>
+          <tr><td>AbnormalAccruals</td><td>0.37</td><td class="a">3.1</td></tr>
+          <tr><td class="w">α, monthly</td><td class="w">0.41%</td><td class="g">2.9</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="row" style="grid-template-columns:1.22fr .98fr .98fr .92fr">
+      <div class="panel">
+        <div class="ph">Checks <span>cheapest killers first</span></div>
+        <div class="chk">
+          <div><span><span class="n">0</span>reason · who pays</span><span class="g">✓ slow analysts</span></div>
+          <div><span><span class="n">1</span>idea ↔ code</span><span class="g">✓ toy test + reconciler</span></div>
+          <div><span><span class="n">2</span>point-in-time</span><span class="g">✓ first filed date, shift</span></div>
+          <div><span><span class="n">3</span>rank IC</span><span class="g">✓ t 3.6</span></div>
+          <div><span><span class="n">4</span>decay vs holding</span><span class="g">✓ peak at 20d</span></div>
+          <div><span><span class="n">5</span>costs</span><span class="g">✓ breakeven 41 bps</span></div>
+          <div><span><span class="n">6</span>microcaps</span><span class="g">✓ NYSE cap-weight 0.74</span></div>
+          <div><span><span class="n">7</span>novelty</span><span class="g">✓ ρ 0.46, α t 2.9</span></div>
+          <div><span><span class="n">8</span>subperiods</span><span class="g">✓ 4 / 4 same sign</span></div>
+          <div><span><span class="n">9</span>deflated Sharpe</span><span class="g">✓ 0.97 at N_eff 38</span></div>
+          <div><span><span class="n">10</span>PBO</span><span class="g">✓ 0.21</span></div>
+          <div><span><span class="n">11</span>post-cutoff</span><span class="a">~ sign only, 5 months</span></div>
+          <div><span><span class="n">12</span>holdout</span><span class="m">sealed</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph">Subperiods</div>
+        <table>
+          <tr><th>window</th><th>IC</th><th>Sharpe</th><th>t</th></tr>
+          <tr><td>2016–18</td><td>0.034</td><td>1.21</td><td>2.1</td></tr>
+          <tr><td>2019–20</td><td>0.022</td><td>0.71</td><td>1.0</td></tr>
+          <tr><td>2021–23</td><td>0.035</td><td>1.30</td><td>2.3</td></tr>
+          <tr><td>2024–26/06</td><td>0.031</td><td>1.02</td><td>1.6</td></tr>
+          <tr><td>cap-weighted</td><td>0.024</td><td>0.74</td><td>2.2</td></tr>
+          <tr><td>ex-microcaps</td><td>0.029</td><td>0.98</td><td>3.1</td></tr>
+        </table>
+        <div class="note" style="color:#a3abb5">drop the best window and t stays 3.0</div>
+      </div>
+      <div class="panel">
+        <div class="ph">Before vs after model cutoff</div>
+        <table>
+          <tr><th></th><th>2016 → 26/06</th><th>after</th></tr>
+          <tr><td>months</td><td>126</td><td>5</td></tr>
+          <tr><td>rank IC</td><td>0.032</td><td class="g">0.027</td></tr>
+          <tr><td>Sharpe</td><td>1.12</td><td class="g">0.94</td></tr>
+          <tr><td>hit rate</td><td>61%</td><td class="g">4 / 5</td></tr>
+          <tr><td>model saw it</td><td class="r">yes</td><td class="g">no</td></tr>
+        </table>
+        <div class="note">5 months proves the sign, not the size. Needed to prove this Sharpe: 3.1 years.</div>
+      </div>
+      <div class="panel">
+        <div class="ph">Can you trade it</div>
+        <table>
+          <tr><td>names per leg</td><td>194</td></tr>
+          <tr><td>median spread</td><td>8 bps</td></tr>
+          <tr><td>ADV used at $10M</td><td>0.06%</td></tr>
+          <tr><td>capacity at 1% ADV</td><td>$180M</td></tr>
+          <tr><td>short borrow, hard</td><td class="a">6%</td></tr>
+          <tr><td>long leg alone, t</td><td>2.1</td></tr>
+          <tr><td>short leg alone, t</td><td>2.6</td></tr>
+        </table>
+        <div class="note" style="color:#a3abb5">hard-to-borrow names cost 31% of the short side</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="win right">
+  <div class="tb"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span></div>
+  <div class="term">
+    <div class="cc">✻ Claude Code<span>Opus 5.5 · alphadesk plugin</span></div>
+    <div class="path"><span>~/research</span><span>context 41% · 1.84M tokens</span></div>
+    <div class="prompt"><span>&gt;</span> /alphadesk:replicate papers/accruals-filing-lag.pdf, then extend</div>
+
+    <div class="ln"><span class="ts">12:15:02</span><span class="h">Scout</span></div>
+    <div class="ind">41 pages → 6 testable claims, each with its line<br>main claim: p.14, Table 3, decile 10−1, t 4.42</div>
+    <div class="ln"><span class="ts">12:31:47</span><span class="h">Replicator</span></div>
+    <div class="ind">rebuilt on EDGAR, first filed date per number<br>paper t 4.42 (1972–2015) · ours 2016–26 t 2.6<br>vs OSAP portfolio ρ 0.91 · after publication <span class="r">−38%</span></div>
+    <div class="ln"><span class="ts">12:58:10</span><span class="h">Coder</span><span class="m">15 variants · typed formulas</span></div>
+    <div class="ind"><span class="a">#09 refused to compile: reads 10-K before it was filed</span></div>
+    <div class="ln"><span class="ts">13:04:33</span><span class="h">Reconciler</span><span class="m">fresh context</span></div>
+    <div class="ind"><span class="a">#11 sign flipped vs its card<br>#17 uses a 6m window, card says 12m</span> → sent back</div>
+    <div class="ln"><span class="ts">13:22:51</span><span class="h">alphadesk.submit</span><span class="m">×12 → verdicts</span></div>
+    <div class="vt"><table>
+      <tr><th>#</th><th style="text-align:left">variant</th><th>IC</th><th>t</th><th>verdict</th></tr>
+      <tr><td>13</td><td style="text-align:left">accr_q, raw</td><td>.019</td><td>2.2</td><td class="r">✕ 3</td></tr>
+      <tr><td>14</td><td style="text-align:left">accr_q × lag≤60</td><td>.024</td><td>2.7</td><td class="r">✕ 3</td></tr>
+      <tr><td>15</td><td style="text-align:left">accr_q, small caps</td><td>.041</td><td>3.4</td><td class="r">✕ 5 costs</td></tr>
+      <tr><td>18</td><td style="text-align:left">Δaccruals 4q</td><td>.033</td><td>3.9</td><td class="r">✕ 7 ρ .84</td></tr>
+      <tr><td>21</td><td style="text-align:left">accr_q × analyst gap</td><td>.029</td><td>3.2</td><td class="r">✕ 9 DSR .71</td></tr>
+      <tr><td>24</td><td style="text-align:left">accr_q, 5d hold</td><td>.012</td><td>1.6</td><td class="r">✕ 4 decay</td></tr>
+      <tr class="ok"><td>26</td><td style="text-align:left" class="w">accr_q × lag≤45, sec-neutral</td><td>.031</td><td>3.6</td><td class="g">✓ 11/11</td></tr>
+      <tr><td colspan="5" style="text-align:left;color:#a3abb5">+ 5 more died at 3 · validation asked 12×, noised σ .004</td></tr>
+    </table></div>
+    <div class="ln"><span class="ts">13:41:09</span><span class="h">Librarian</span></div>
+    <div class="ind">212 factors (French · JKP · OSAP): max ρ 0.46, α t 2.9</div>
+    <div class="ln"><span class="ts">13:49:26</span><span class="h">Critic</span><span class="m">new EDGAR loader</span></div>
+    <div class="ind">shift test, 1,940 stocks × 126 months: bit-identical <span class="g">✓</span></div>
+    <div class="ln"><span class="ts">14:06:58</span><span class="h">Reporter</span></div>
+    <div class="ind">desk/c004/26.html · every number from evaluator JSON</div>
+
+    <div class="ln"><span class="ts">14:07:03</span><span class="h">Summary</span></div>
+    <div class="ind">15 ideas → 14 compile → 12 match card → 5 t≥3<br>→ 4 decay ok → 3 after costs → 2 novel → <span class="g">1 survives</span><br>budget used 15 of 30 · graveyard 14, each with its check<br>next: <span class="b">/alphadesk:campaign extend c004 --around 26</span></div>
+    <div class="ln"><span class="ts">14:07:04</span><span class="h">Graveyard by check</span></div>
+    <div class="gy"><div><span>compile · look-ahead</span><i style="width:14px"></i><b>1</b></div><div><span>1 idea ↔ code</span><i style="width:28px"></i><b>2</b></div><div><span>3 rank IC t &lt; 3</span><i style="width:98px"></i><b>7</b></div><div><span>4 decay</span><i style="width:14px"></i><b>1</b></div><div><span>5 costs</span><i style="width:14px"></i><b>1</b></div><div><span>7 already known</span><i style="width:14px"></i><b>1</b></div><div><span>9 deflated Sharpe</span><i style="width:14px"></i><b>1</b></div></div>
+    <div class="seal">Holdout is sealed. Run it yourself, once, in your terminal:<br><code>alphadesk holdout c004</code></div>
+  </div>
+  <div class="status"><span><span class="g">●</span> campaign c004 · 1h 52m</span><span>trial log N 62 · tool calls 214</span></div>
+</div>
+
+<script>
+function rng(s){return()=>{s=(s*16807)%2147483647;return s/2147483647}}
+const R=rng(26);function G(){let u=0;while(!u)u=R();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*R())}
+const F="JetBrains Mono";
+const txt=(x,y,t,c='#8c949e',a='middle',s=9.5)=>`<text x="${x}" y="${y}" fill="${c}" font-size="${s}" text-anchor="${a}" font-family="${F}">${t}</text>`;
+(function(){const n=131,cut=126;let a=[0],b=[0];for(let i=1;i<n;i++){a.push(a[i-1]+0.0085+0.024*G());b.push(b[i-1]+(i<60?0.006:0.0005)+0.022*G());}
+ const W=604,H=232,L=34,T=6,Bm=60,Rp=6;const mn=Math.min(...a,...b)-0.04,mx=Math.max(...a,...b)+0.04;
+ const x=i=>L+(W-L-Rp)*i/(n-1),y=v=>T+(H-T-Bm)*(1-(v-mn)/(mx-mn));let s='';
+ for(let k=0;k<=4;k++){const v=mn+(mx-mn)*k/4;s+=`<line x1="${L}" x2="${W-Rp}" y1="${y(v)}" y2="${y(v)}" stroke="#141619"/>`+txt(L-5,y(v)+3,(v*100).toFixed(0)+'%','#8c949e','end')}
+ s+=`<rect x="${x(cut)}" y="${T}" width="${W-Rp-x(cut)}" height="${H-T-Bm}" fill="#2ea04326"/><line x1="${x(cut)}" x2="${x(cut)}" y1="${T}" y2="${H-22}" stroke="#e3b341" stroke-dasharray="3 3"/>`;
+ s+=txt(x(cut)-5,H-Bm-20,'model cutoff 2026-06 →','#e3b341','end',10)+txt(x(cut)-5,H-Bm-8,'left of the line the model has seen the market','#a3abb5','end',9.2);
+ const pts=arr=>arr.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+ s+=`<polyline points="${pts(b)}" fill="none" stroke="#8c949e" stroke-width="1.2"/><polyline points="${pts(a)}" fill="none" stroke="#79c0ff" stroke-width="1.8"/>`;
+ let pk=-9,dd=[];a.forEach(v=>{pk=Math.max(pk,v);dd.push(v-pk)});const dmn=Math.min(...dd);const y2=v=>H-40+30*(v/dmn);
+ s+=`<line x1="${L}" x2="${W-Rp}" y1="${H-40}" y2="${H-40}" stroke="#25282d"/>`;
+ s+=`<polygon points="${x(0)},${H-40} ${dd.map((v,i)=>`${x(i).toFixed(1)},${y2(v).toFixed(1)}`).join(' ')} ${x(n-1)},${H-40}" fill="#f8514940" stroke="#ff7b72" stroke-width="0.8"/>`;
+ s+=txt(L-5,H-33,'DD','#ff7b72','end')+txt(L-5,H-12,(dmn*100).toFixed(0)+'%','#8c949e','end');
+ for(let yr=2016;yr<=2026;yr+=2){s+=txt(x((yr-2016)*12),H-1,yr)}
+ document.getElementById('eq').innerHTML=s;})();
+(function(){const v=[-3.1,-1.9,-0.8,0.2,1.1,1.9,2.8,3.9,5.2,7.4];const W=364,H=232,base=136,sc=11;let s='';
+ v.forEach((r,i)=>{const bx=14+i*34,h=Math.abs(r)*sc,yy=r>=0?base-h:base;s+=`<rect x="${bx}" y="${yy}" width="24" height="${h}" rx="2" fill="${i==9?'#3fe06e':i==0?'#ff7b72':(r>=0?'#1f7a3e':'#8a2a26')}"/>`+txt(bx+12,r>=0?yy-4:yy+h+11,r.toFixed(1),'#c9d1d9')+txt(bx+12,H-38,'D'+(i+1))});
+ s+=`<line x1="8" x2="${W-8}" y1="${base}" y2="${base}" stroke="#25282d"/>`;
+ s+=txt(14,H-17,'D10 − D1 = 10.5% / yr gross · 7.9% net','#f0f6fc','start',10.5)+txt(14,H-3,'t 3.4 · the short side carries 41% of it','#a3abb5','start',9.5);
+ document.getElementById('dec').innerHTML=s;})();
+(function(){const hz=['1d','5d','10d','20d','60d'],ic=[0.012,0.021,0.027,0.031,0.019];let s='';const base=128,sc=2900;
+ ic.forEach((v,i)=>{const xx=8+i*41;s+=`<rect x="${xx}" y="${base-v*sc}" width="28" height="${v*sc}" rx="2" fill="${i==3?'#79c0ff':'#28507f'}"/>`+txt(xx+14,base-v*sc-4,v.toFixed(3).slice(1),'#c9d1d9')+txt(xx+14,base+12,hz[i])});
+ s+=`<line x1="4" x2="210" y1="${base}" y2="${base}" stroke="#25282d"/>`;document.getElementById('ich').innerHTML=s;})();
+(function(){const n=115;let v=[],c=0.03;for(let i=0;i<n;i++){c+=0.004*G()-0.08*(c-0.031);v.push(Math.max(c,0.003))}
+ const W=214,H=150,L=26,y=t=>8+(H-26)*(1-(t+0.01)/0.07),x=i=>L+(W-L-4)*i/(n-1);let s='';
+ [0,0.02,0.04,0.06].forEach(t=>{s+=`<line x1="${L}" x2="${W-4}" y1="${y(t)}" y2="${y(t)}" stroke="${t==0?'#3a414c':'#141619'}"/>`+txt(L-4,y(t)+3,t.toFixed(2).slice(1),'#8c949e','end')});
+ s+=`<polyline points="${v.map((t,i)=>`${x(i).toFixed(1)},${y(t).toFixed(1)}`).join(' ')}" fill="none" stroke="#d2a8ff" stroke-width="1.5"/>`;
+ s+=txt(L,H-2,'2017','#8c949e','start')+txt(W-4,H-2,'2026','#8c949e','end');document.getElementById('ric').innerHTML=s;})();
+(function(){const W=214,H=150,L=26,x=b=>L+(W-L-6)*b/60,y=s=>8+(H-26)*(1-(s+0.4)/1.9);let s='';const f=b=>1.41-0.0344*b;
+ [0,0.5,1.0,1.5].forEach(t=>{s+=`<line x1="${L}" x2="${W-6}" y1="${y(t)}" y2="${y(t)}" stroke="${t==0?'#3a414c':'#141619'}"/>`+txt(L-4,y(t)+3,t.toFixed(1),'#8c949e','end')});
+ let p=[];for(let b=0;b<=50;b+=2)p.push(`${x(b).toFixed(1)},${y(f(b)).toFixed(1)}`);
+ s+=`<polyline points="${p.join(' ')}" fill="none" stroke="#79c0ff" stroke-width="1.6"/>`;
+ s+=`<line x1="${x(15)}" x2="${x(15)}" y1="${y(f(15))}" y2="${H-18}" stroke="#3fe06e" stroke-dasharray="2 2"/><circle cx="${x(15)}" cy="${y(f(15))}" r="3" fill="#3fe06e"/>`+txt(x(15)+5,y(f(15))-6,'yours: 15 bps → 0.89','#3fe06e','start');
+ s+=`<circle cx="${x(41)}" cy="${y(0)}" r="3" fill="#ff7b72"/>`+txt(x(41)-6,y(0)+13,'0 at 41','#ff7b72','end');
+ [0,20,40,60].forEach(b=>{s+=txt(x(b),H-4,b)});document.getElementById('cost').innerHTML=s;})();
+</script>
+</body></html>

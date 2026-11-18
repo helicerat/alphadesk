@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;800;900&family=JetBrains+Mono:wght@500;600&display=block" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1600px;height:400px;background:#000;overflow:hidden;position:relative;font-family:Inter,sans-serif}
+canvas{position:absolute;inset:0;width:1600px;height:400px}
+.vig{position:absolute;inset:0;background:radial-gradient(640px 220px at 50% 50%,#000000f7 0%,#000000e0 50%,#00000000 100%)}
+.wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:30px}
+.mark{width:120px;height:120px;border-radius:28px;background:linear-gradient(150deg,#2f81f7 0%,#1158c7 55%,#0b3d91 100%);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 #ffffff40,0 0 0 1px #58a6ff66,0 16px 50px #1f6feb55}
+.mark svg{width:70px;height:70px}
+h1{font:900 100px/0.95 Inter,sans-serif;letter-spacing:-.045em;color:#f5f8fc}
+h1 span{color:#4493f8}
+p{font:600 25px/1.2 Inter,sans-serif;letter-spacing:-.012em;color:#d4d9df;margin-top:12px}
+p b{color:#7ee787;font-weight:600}
+.tag{position:absolute;right:28px;bottom:22px;font:500 13px "JetBrains Mono",monospace;color:#6e7681;letter-spacing:.02em}
+.tag i{font-style:normal;color:#7ee787}
+.tagl{position:absolute;left:28px;bottom:22px;font:500 13px "JetBrains Mono",monospace;color:#6e7681}
+</style></head><body>
+<canvas id="c"></canvas>
+<div class="vig"></div>
+<div class="wrap">
+  <div class="mark"><svg viewBox="0 0 70 70"><path d="M48 22c-3 14-8 26-17 26-7 0-11-6-11-13 0-9 6-15 13-15 9 0 11 10 14 20 2 6 4 9 7 9" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <div><h1>alpha<span>desk</span></h1><p>a quant research desk inside Claude Code</p></div>
+</div>
+<div class="tagl">1,000 strategies on pure noise</div>
+<div class="tag"><i>1</i> survives 13 checks</div>
+<script>
+const c=document.getElementById('c'),d=window.devicePixelRatio||1;c.width=1600*d;c.height=400*d;const x=c.getContext('2d');x.scale(d,d);
+let s=11;const R=()=>{s=(s*16807)%2147483647;return s/2147483647};const G=()=>{let u=0;while(!u)u=R();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*R())};
+const N=1000,steps=200,dx=1600/steps;
+for(let k=0;k<N;k++){let y=210;x.beginPath();x.moveTo(0,y);const vol=1.6+R()*3.4;
+ for(let i=1;i<=steps;i++){y+=G()*vol;x.lineTo(i*dx,y)}
+ const h=200+R()*30;x.strokeStyle=`hsla(${h},70%,${50+R()*12}%,${0.022+R()*0.035})`;x.lineWidth=1;x.stroke();}
+// survivor
+let y=212,pts=[[0,y]];for(let i=1;i<=steps;i++){y+=G()*1.9+(i<120?0.25:-1.55);pts.push([i*dx,y])}
+x.save();x.shadowColor='#3fb950';x.shadowBlur=18;x.strokeStyle='#56d364';x.lineWidth=2.6;x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke();x.restore();
+const last=pts[pts.length-1];x.fillStyle='#7ee787';x.beginPath();x.arc(last[0]-4,last[1],4.5,0,7);x.fill();
+</script>
+</body></html>
