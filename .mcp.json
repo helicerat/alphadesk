@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "desk": {
+      "command": "python",
+      "args": ["-m", "alphadesk.mcp_server"],
+      "env": { "ALPHADESK_DESK": "desk" }
+    }
+  }
+}

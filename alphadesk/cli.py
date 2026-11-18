@@ -104,6 +104,73 @@ def cmd_evaluate(args):
     return 0
 
 
+def cmd_init(args):
+    from .workspace import init
+    p = init(args.desk, data=args.data)
+    print(f"desk created: {p}")
+    print("data:", args.data)
+    if args.data == "alpaca":
+        print("put your tickers in", Path(args.desk) / "universe.txt", "and set APCA_API_KEY_ID / APCA_API_SECRET_KEY")
+    return 0
+
+
+def cmd_status(args):
+    from .workspace import graveyard, open_desk
+    ws = open_desk(args.desk)
+    c = args.campaign or ws.campaign
+    n = ws.desk.log.count(c)
+    g = graveyard(ws, c)
+    surv = [x for x in g if x["check"] == "survived"]
+    print(f"{B}campaign {c}{X}  trials {n['trials']} · validation queries {n['validation_queries']} · "
+          f"holdout opened {n['holdout_opened']}x")
+    for x in g:
+        mark = f"{G}✓{X}" if x["check"] == "survived" else f"{R}✕{X}"
+        print(f"  {mark} {x['card']:<24} {D}{x['why']}{X}")
+    print(f"
+{len(surv)} survived, {len(g) - len(surv)} in the graveyard")
+    return 0
+
+
+def cmd_holdout(args):
+    """Open the sealed holdout. Only a person at a real terminal can run it."""
+    import numpy as np
+    from . import portfolio, stats
+    from .workspace import graveyard, open_desk
+    if not (sys.stdin.isatty() and sys.stdout.isatty()) and not args.i_am_human_in_ci:
+        print("The holdout opens only from your own terminal (no TTY detected). "
+              "Agents can't run this command, by design.")
+        return 2
+    ws = open_desk(args.desk)
+    c = args.campaign
+    surv = [x for x in graveyard(ws, c) if x["check"] == "survived"]
+    opened = ws.desk.log.count(c)["holdout_opened"]
+    print(f"{B}holdout for campaign {c}{X}: {len(surv)} survivor(s). Opened before: {opened} time(s).")
+    if opened:
+        print(f"{Y}Every extra opening is recorded and shown in the report.{X}")
+    if not args.i_am_human_in_ci:
+        typed = input(f"Type the campaign name ({c}) to open it once: ").strip()
+        if typed != c:
+            print("not opened")
+            return 1
+    w = ws.desk.w
+    from . import dsl
+    rows = []
+    for x in surv:
+        sig = dsl.compile_signal(x["formula"], ws.panel)
+        S = sig.evaluate(ws.panel)
+        card = next((e for e in ws.desk.log.entries(c, kind="trial") if e.get("card") == x["card"]), {})
+        hold = 5
+        ic = stats.ic_summary(ws.desk._ic(S, hold, w.holdout_start, w.end), step=hold)
+        ic_dev = stats.ic_summary(ws.desk._ic(S, hold, w.start, w.valid_start), step=hold)
+        keep = ic["mean"] / ic_dev["mean"] if ic_dev["mean"] else float("nan")
+        ok = np.sign(ic["mean"]) == np.sign(ic_dev["mean"]) and keep >= 0.5
+        rows.append({"card": x["card"], "ic_holdout": ic["mean"], "ic_dev": ic_dev["mean"], "kept": keep, "ok": bool(ok)})
+        mark = f"{G}holds{X}" if ok else f"{R}fails{X}"
+        print(f"  {x['card']:<24} dev IC {ic_dev['mean']:.3f} -> holdout IC {ic['mean']:.3f} ({keep:.0%})  {mark}")
+    ws.desk.log.write({"kind": "holdout", "campaign": c, "results": rows})
+    return 0
+
+
 def main(argv=None):
     _utf8()
     ap = argparse.ArgumentParser(prog="alphadesk", description="A quant research desk for Claude Code.")
@@ -129,6 +196,26 @@ def main(argv=None):
     e.add_argument("--seed", type=int, default=7)
     e.add_argument("--verdict-only", action="store_true", help="print only the verdict, as an agent sees it")
     e.set_defaults(fn=cmd_evaluate)
+
+    i = sub.add_parser("init", help="create a desk folder with a config")
+    i.add_argument("--desk", default="desk")
+    i.add_argument("--data", default="synthetic", choices=["synthetic", "binance", "alpaca"])
+    i.set_defaults(fn=cmd_init)
+
+    st_ = sub.add_parser("status", help="trials, survivors and the graveyard of a campaign")
+    st_.add_argument("--desk", default="desk")
+    st_.add_argument("--campaign")
+    st_.set_defaults(fn=cmd_status)
+
+    h = sub.add_parser("holdout", help="open the sealed holdout, once, from your own terminal")
+    h.add_argument("campaign")
+    h.add_argument("--desk", default="desk")
+    h.add_argument("--i-am-human-in-ci", action="store_true", help=argparse.SUPPRESS)
+    h.set_defaults(fn=cmd_holdout)
+
+    m = sub.add_parser("mcp", help="run the MCP wall (Claude Code starts this for you)")
+    m.add_argument("--desk", default=None)
+    m.set_defaults(fn=lambda a: __import__("alphadesk.mcp_server", fromlist=["Server"]).Server(a.desk).serve() or 0)
 
     args = ap.parse_args(argv)
     return args.fn(args)

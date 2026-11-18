@@ -1,0 +1,9 @@
+{
+  "name": "alphadesk",
+  "displayName": "alphadesk",
+  "version": "0.1.0",
+  "description": "A quant research desk: papers in, evidence packs out. Every idea goes through 13 checks run by code the model can't edit, on data the model can't see.",
+  "author": { "name": "alphadesk" },
+  "license": "MIT",
+  "keywords": ["quant", "alpha-research", "factor-investing", "backtesting", "mcp"]
+}

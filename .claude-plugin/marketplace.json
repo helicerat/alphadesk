@@ -1,0 +1,8 @@
+{
+  "name": "alphadesk",
+  "owner": { "name": "alphadesk" },
+  "description": "A quant research desk for Claude Code",
+  "plugins": [
+    { "name": "alphadesk", "source": "./", "description": "Papers in, evidence packs out. 13 checks run by code the model can't edit." }
+  ]
+}

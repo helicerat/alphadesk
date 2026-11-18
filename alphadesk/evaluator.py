@@ -391,4 +391,8 @@ class Desk:
         last = verdict["checks"][-1] if verdict["checks"] else None
         verdict["summary"] = ("survived" if verdict["survived"]
                               else f"died at {last['n']} {last['name']}: {last['detail']}" if last else "no checks")
+        self.log.write({"kind": "verdict", "campaign": campaign, "card": card.get("id"),
+                        "family": verdict["family"], "formula": card.get("formula"),
+                        "survived": verdict["survived"], "died_at": verdict["died_at"],
+                        "summary": verdict["summary"] if not verdict["survived"] else "survived"})
         return verdict
