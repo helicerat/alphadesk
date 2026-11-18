@@ -23,7 +23,7 @@ def run(tool, **inp):
     ("Read", {"file_path": r"C:\Users\x\.alphadesk\panels\binance.parquet"}),
     ("Bash", {"command": "python -c \"import pandas as pd; pd.read_parquet('C:/Users/x/.alphadesk/panels/a.parquet')\""}),
     ("Grep", {"pattern": "close", "path": "desk/trials/trials.jsonl"}),
-    ("Read", {"file_path": "desk\trials\returns\12.npy"}),
+    ("Read", {"file_path": r"desk\trials\returns\12.npy"}),
 ])
 def test_wall_blocks(tool, inp):
     assert run(tool, **inp) == "deny"
