@@ -26,22 +26,22 @@ a{color:var(--blue);text-decoration:none}
 h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:2px 0 6px}
 h1 small{font:500 12.5px "JetBrains Mono",monospace;color:var(--mute);margin-left:10px;letter-spacing:0}
 h2{font-size:13px;color:var(--mute);text-transform:uppercase;letter-spacing:.1em;margin:26px 0 10px}
-.hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:12px}.hdr>div:first-child{flex:1;min-width:0}.hdr>div:last-child{flex:none}
 .chips{display:flex;gap:6px;flex-wrap:wrap}.chip{font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
 .badge{display:inline-block;font-weight:800;font-size:14px;padding:6px 13px;border-radius:6px;letter-spacing:.06em}
 .badge.ok{background:#0f2a18;border:1px solid #2ea043;color:var(--green)}.badge.no{background:#2a0f0f;border:1px solid #da3633;color:var(--red)}
 .badge+div{font:500 11px "JetBrains Mono",monospace;color:var(--mute);margin-top:5px;text-align:right}
-.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:6px;margin:10px 0}
+.kpis{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px;margin:10px 0}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px}
-.kpi .k{font-size:10.5px;color:var(--mute)}.kpi .v{font-size:17px;font-weight:700}.kpi .v small{display:block;font-size:10px;color:var(--mute);font-weight:500}
+.kpi .k{font-size:10px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpi .v{font-size:16px;font-weight:700}.kpi .v small{display:block;font-size:9.5px;color:var(--mute);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .grid{display:grid;gap:8px;margin-bottom:8px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0}
 .ph{font-size:10.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
 .ph span{text-transform:none;letter-spacing:0;font-weight:500}
 svg{display:block;width:100%;height:auto}
-table{width:100%;border-collapse:collapse;font-size:11.5px}
-td,th{padding:3px 4px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap}
-th{color:var(--mute);font-weight:500;font-size:10.5px}td:first-child,th:first-child{text-align:left;color:var(--soft)}
+table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+td,th{padding:3px 4px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+th{color:var(--mute);font-weight:500;font-size:10.5px}td:first-child,th:first-child{text-align:left;color:var(--soft);width:44%}.t-sub td:first-child,.t-sub th:first-child{width:30%}.t-trade td:first-child{width:64%}.t-cut td:first-child,.t-cut th:first-child{width:38%}
 .chk{font-size:11px;line-height:1.75}.chk div{display:flex;justify-content:space-between;gap:10px}.chk .n{color:var(--dim);display:inline-block;width:20px}
 .chk div>span:first-child{white-space:nowrap;flex:none}.chk div>span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;min-width:0}
 .g{color:var(--green)}.r{color:var(--red)}.a{color:var(--amber)}.m{color:var(--mute)}.b{color:var(--blue)}
@@ -50,7 +50,7 @@ th{color:var(--mute);font-weight:500;font-size:10.5px}td:first-child,th:first-ch
 .warn{border:1px solid #9e6a03;background:#231a05;color:var(--amber);border-radius:6px;padding:8px 12px;font-size:12px;margin:8px 0}
 .funnel .row{display:grid;grid-template-columns:220px 1fr 50px;gap:10px;align-items:center;margin:3px 0;font-size:12px}
 .funnel .bar{height:12px;background:#111;border-radius:2px;position:relative}.funnel .bar i{position:absolute;inset:0 auto 0 0;background:var(--blue);border-radius:2px}
-@media(max-width:820px){.grid{grid-template-columns:1fr!important}body{padding:14px}}
+@media(max-width:820px){.grid{grid-template-columns:1fr!important}.kpis{grid-template-columns:repeat(auto-fill,minmax(108px,1fr))}.hdr{flex-wrap:wrap}body{padding:14px}}
 """
 
 F = "JetBrains Mono, Consolas, monospace"
@@ -60,6 +60,15 @@ def _fmt(x, d=2, pct=False):
     if x is None or (isinstance(x, float) and not math.isfinite(x)):
         return "–"
     return f"{x * 100:.{d}f}%" if pct else f"{x:.{d}f}"
+
+
+def _money(x):
+    if x is None or not math.isfinite(x):
+        return "–"
+    for unit, k in (("B", 1e9), ("M", 1e6), ("K", 1e3)):
+        if abs(x) >= k:
+            return f"${x / k:.1f}{unit}"
+    return f"${x:.0f}"
 
 
 def _txt(x, y, t, c="#6b737d", a="middle", s=10):
@@ -185,13 +194,13 @@ def evidence_html(ev: dict, campaign: str, n_trials: int) -> str:
         ("rank IC · t", _fmt(ic.get("mean"), 3), f"t {_fmt(ic.get('t'), 1)}"),
         ("IC IR · > 0", _fmt(ic.get("ir"), 2), _fmt(ic.get("pos"), 0, pct=True)),
         ("Sharpe, net", _fmt(costs.get("sharpe_net")), f"gross {_fmt(costs.get('sharpe_gross'))}"),
-        ("deflated Sharpe", _fmt(ev["final_deflation"]["dsr"]), f"at final N_eff {_fmt(ev['final_deflation']['n_eff'], 0)}"),
+        ("deflated Sharpe", _fmt(ev["final_deflation"]["dsr"]), f"final N_eff {_fmt(ev['final_deflation']['n_eff'], 0)}"),
         ("PBO", _fmt((v.get("pbo") or {}).get("pbo")), "CSCV 16" if v.get("pbo") else "family < 4"),
         ("breakeven", _fmt(costs.get("breakeven_bps"), 0), "bps / side"),
-        ("turnover", _fmt(tr.get("turnover_per_rebalance"), 0, pct=True), f"per rebalance, hold {ev['hold']}"),
+        ("turnover", _fmt(tr.get("turnover_per_rebalance"), 0, pct=True), "per rebalance"),
         ("max ρ known", _fmt(sc.get(top), 2) if top else "–", top or "no library"),
         ("max drawdown", _fmt(tr.get("max_drawdown"), 0, pct=True), "cumulative"),
-        ("MinBTL", _fmt(ev["final_deflation"]["minbtl_years"], 1), "years of data needed"),
+        ("MinBTL", _fmt(ev["final_deflation"]["minbtl_years"], 1), "years needed"),
     ]
     k_html = "".join(f'<div class="kpi"><div class="k">{k}</div><div class="v">{a}<small>{b}</small></div></div>' for k, a, b in kpis)
     marks = [(ev["valid_index"], "#a3abb5", "validation →"), (ev["cutoff_index"], "#e3b341", "model cutoff →")]
@@ -222,10 +231,10 @@ def evidence_html(ev: dict, campaign: str, n_trials: int) -> str:
                 if need and math.isfinite(need) and wpost["rows"] < need else "enough rows after the cutoff to judge the size")
     trad = "".join(f"<tr><td>{k}</td><td>{val}</td></tr>" for k, val in [
         ("names per leg", tr["names_per_leg"]),
-        ("turnover / rebalance", _fmt(tr["turnover_per_rebalance"], 0, pct=True)),
+        ("turnover / rebal.", _fmt(tr["turnover_per_rebalance"], 0, pct=True)),
         ("long leg alone, t", _fmt(tr["long_leg_t"], 1)), ("short leg alone, t", _fmt(tr["short_leg_t"], 1)),
-        ("median daily $ volume", f"${tr['median_adv']:,.0f}" if tr.get("median_adv") else "–"),
-        ("capacity at 1% ADV", f"${tr['capacity_1pct_adv']:,.0f}" if tr.get("capacity_1pct_adv") else "–")])
+        ("median $ vol / day", _money(tr.get("median_adv"))),
+        ("capacity, 1% ADV", _money(tr.get("capacity_1pct_adv")))])
     fd = ev["final_deflation"]
     if not fd["still_passes"]:
         warn_final = (f'<div class="warn">Found early in the campaign. At the final count of {fd["n_raw"]} tries '
@@ -255,15 +264,15 @@ def evidence_html(ev: dict, campaign: str, n_trials: int) -> str:
 <div class="panel"><div class="ph">Explained by known factors</div><table><tr><th>factor</th><th>β</th><th>t</th></tr>{ft}</table>{pub_html}</div></div>
 <div class="grid" style="grid-template-columns:1.25fr 1fr 1fr 1fr">
 <div class="panel"><div class="ph">Checks <span>cheapest killers first</span></div><div class="chk">{_checks_html(v['checks'])}</div></div>
-<div class="panel"><div class="ph">Subperiods</div><table><tr><th>window</th><th>IC</th><th>t</th><th>&gt; 0</th></tr>{st}</table></div>
-<div class="panel"><div class="ph">Before vs after model cutoff</div><table>
-<tr><th></th><th>{wpre['from'][:7]} → {wpre['to'][:7]}</th><th>after</th></tr>
+<div class="panel"><div class="ph">Subperiods</div><table class="t-sub"><tr><th>window</th><th>IC</th><th>t</th><th>&gt; 0</th></tr>{st}</table></div>
+<div class="panel"><div class="ph">Model cutoff <span>{wpre['to'][:7]}</span></div><table class="t-cut">
+<tr><th></th><th>before</th><th>after</th></tr>
 <tr><td>rows</td><td>{wpre['n']}</td><td>{wpost['rows']}</td></tr>
 <tr><td>rank IC</td><td>{_fmt(wpre['ic'], 3)}</td><td class="g">{_fmt(wpost['ic'], 3)}</td></tr>
 <tr><td>Sharpe, net</td><td>{_fmt(wpre['sharpe'])}</td><td class="g">{_fmt(wpost['sharpe'])}</td></tr>
 <tr><td>hit rate</td><td>{_fmt(wpre['hit'], 0, pct=True)}</td><td>{_fmt(wpost['hit'], 0, pct=True)}</td></tr>
 <tr><td>model saw it</td><td class="r">yes</td><td class="g">no</td></tr></table><div class="note">{cut_note}</div></div>
-<div class="panel"><div class="ph">Can you trade it</div><table>{trad}</table></div></div>
+<div class="panel"><div class="ph">Can you trade it</div><table class="t-trade">{trad}</table></div></div>
 <div class="foot">alphadesk {__version__} · every number above comes from the evaluator; the holdout window is not shown · generated {dt.datetime.now().strftime('%Y-%m-%d %H:%M')}</div>
 </div></body></html>"""
 

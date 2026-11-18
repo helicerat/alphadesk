@@ -26,10 +26,23 @@ FILES = "https://data.binance.vision"
 UA = {"User-Agent": "alphadesk (open-source research tool)"}
 
 
-def _get(url: str, timeout: int = 60) -> bytes:
-    req = urllib.request.Request(url, headers=UA)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+def _get(url: str, timeout: int = 60, tries: int = 6) -> bytes:
+    """GET with retries: the archive resets connections under load."""
+    import time
+    import urllib.error
+    for i in range(tries):
+        try:
+            req = urllib.request.Request(url, headers=UA)
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                raise
+            err = e
+        except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:
+            err = e
+        time.sleep(min(30, 1.5 * 2 ** i))
+    raise err
 
 
 def _list(prefix: str, delimiter: str | None = None) -> tuple[list, list]:
@@ -53,6 +66,9 @@ def symbols(quote: str = "USDT") -> list[str]:
     return [s for s in out if s.endswith(quote) and re.fullmatch(r"[A-Z0-9]+", s)]
 
 
+FAILED: list = []
+
+
 def _zip_csv(key: str) -> pd.DataFrame | None:
     local = cache.path("binance", key.replace("/", "_"))
     if local.exists():
@@ -62,6 +78,7 @@ def _zip_csv(key: str) -> pd.DataFrame | None:
             raw = _get(f"{FILES}/{key}")
             chk = _get(f"{FILES}/{key}.CHECKSUM").decode().split()[0]
         except Exception:
+            FAILED.append(key)
             return None
         if hashlib.sha256(raw).hexdigest() != chk:
             raise IOError(f"checksum mismatch for {key}")
@@ -77,10 +94,19 @@ KCOLS = ["open_time", "open", "high", "low", "close", "volume", "close_time", "q
          "trades", "taker_base", "taker_quote", "ignore"]
 
 
-def _symbol_daily(sym: str, since: str, until: str | None) -> pd.DataFrame | None:
-    keys, _ = _list(f"data/futures/um/monthly/klines/{sym}/1d/")
-    keys = [k for k in keys if k.endswith(".zip")]
-    months = [k for k in keys if since <= k[-11:-4] and (until is None or k[-11:-4] <= until)]
+def _in_range(key: str, since: str, until: str | None) -> bool:
+    m = key[-11:-4]
+    return key.endswith(".zip") and since <= m and (until is None or m <= until)
+
+
+def _keys_for(sym: str, since: str, until: str | None) -> tuple[list, list]:
+    k, _ = _list(f"data/futures/um/monthly/klines/{sym}/1d/")
+    f, _ = _list(f"data/futures/um/monthly/fundingRate/{sym}/")
+    return [x for x in k if _in_range(x, since, until)], [x for x in f if _in_range(x, since, until)]
+
+
+def _symbol_daily(sym: str, since: str, until: str | None, keys=None) -> pd.DataFrame | None:
+    months, fkeys = keys if keys is not None else _keys_for(sym, since, until)
     frames = []
     for k in months:
         df = _zip_csv(k)
@@ -99,8 +125,7 @@ def _symbol_daily(sym: str, since: str, until: str | None) -> pd.DataFrame | Non
     k = k.drop_duplicates("date").set_index("date").sort_index()
     out = k[["close", "quote_volume", "taker_quote"]].astype(float)
 
-    fkeys, _ = _list(f"data/futures/um/monthly/fundingRate/{sym}/")
-    fr = [_zip_csv(x) for x in fkeys if x.endswith(".zip") and since <= x[-11:-4]]
+    fr = [_zip_csv(x) for x in fkeys]
     fr = [f for f in fr if f is not None and not f.empty]
     if fr:
         f = pd.concat(fr).iloc[:, :3]
@@ -115,22 +140,34 @@ def _symbol_daily(sym: str, since: str, until: str | None) -> pd.DataFrame | Non
 
 
 def load(since: str = "2022-01", until: str | None = None, universe: list | None = None,
-         max_symbols: int | None = None, workers: int = 12, progress=None) -> Panel:
+         max_symbols: int | None = None, workers: int = 16, progress=None) -> Panel:
     """Daily panel of USDT perpetuals. Rows are UTC days; a row's close is
-    known at 00:00 UTC of the next day, which is when the signal trades."""
+    known at 00:00 UTC of the next day, which is when the signal trades.
+
+    Three passes, each parallel: list every symbol's files, download every
+    file not yet cached (checksum-verified), then parse from the cache."""
     syms = universe or symbols()
     if max_symbols:
         syms = syms[:max_symbols]
     tag = f"{since}_{until}_{len(syms)}_{hashlib.sha1(','.join(syms).encode()).hexdigest()[:8]}"
     cached = cache.load("panels", f"binance_{tag}")
     if cached is None:
+        say = progress or (lambda *a: None)
+        with ThreadPoolExecutor(min(workers, 8)) as ex:
+            keys = dict(zip(syms, ex.map(lambda s: _keys_for(s, since, until), syms)))
+        say("listed", len(syms), f"{sum(len(a) + len(b) for a, b in keys.values())} files")
+        todo = [k for a, b in keys.values() for k in a + b
+                if not cache.path("binance", k.replace("/", "_")).exists()]
         with ThreadPoolExecutor(workers) as ex:
-            parts = {}
-            for i, (s, df) in enumerate(zip(syms, ex.map(lambda s: _symbol_daily(s, since, until), syms))):
-                if df is not None and len(df) > 30:
-                    parts[s] = df
-                if progress:
-                    progress(i + 1, len(syms), s)
+            for i, _ in enumerate(ex.map(_zip_csv, todo)):
+                if (i + 1) % 1000 == 0 or i + 1 == len(todo):
+                    say("downloaded", i + 1, f"of {len(todo)}")
+        parts = {}
+        for i, s in enumerate(syms):
+            df = _symbol_daily(s, since, until, keys=keys[s])
+            if df is not None and len(df) > 30:
+                parts[s] = df
+        say("parsed", len(parts), "symbols with 30+ days")
         long = pd.concat(parts, names=["symbol", "date"]).reset_index()
         cache.save(long, "panels", f"binance_{tag}")
     else:
