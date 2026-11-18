@@ -68,6 +68,7 @@ class Desk:
     log: TrialLog
     config: Config = field(default_factory=Config)
     library: dict = field(default_factory=dict)  # name -> formula
+    external: object = None   # DataFrame of published factor returns (daily or monthly)
     seed: int = 0
 
     def __post_init__(self):
@@ -254,6 +255,17 @@ class Desk:
         else:
             done(7, "na", "no factor library loaded")
 
+        # 7b published factors (French, OSAP): returns-based, any frequency ---
+        if self.external is not None:
+            ext = self._external_check(ls["gross"], w.start, w.valid_start)
+            verdict.setdefault("novelty", {})["published"] = ext
+            if ext and ext["max_abs_corr"] >= cfg.novelty_max_corr:
+                done(7, "fail", f"already published: returns move with {ext['top']} (ρ {ext['top_corr']:.2f})")
+                return self._finish(verdict, card, campaign, sig, S, hold, ls["net"])
+            if ext and ext["t_alpha"] < cfg.novelty_min_alpha_t:
+                done(7, "fail", f"explained by published factors: α t {ext['t_alpha']:.1f} after {ext['n_factors']} factors")
+                return self._finish(verdict, card, campaign, sig, S, hold, ls["net"])
+
         # 8 subperiods + validation window --------------------------------
         bounds = np.linspace(w.start, w.valid_start, 5).astype(int)
         subs = []
@@ -332,6 +344,32 @@ class Desk:
         done(12, "sealed", "run `alphadesk holdout` yourself, once")
         verdict["survived"] = True
         return self._finish(verdict, card, campaign, sig, recorded=True)
+
+    def _external_check(self, gross, a, b, max_factors: int = 12):
+        import pandas as pd
+        ext = self.external
+        r = pd.Series(gross[a:b], index=self.panel.dates[a:b]).dropna()
+        if r.empty:
+            return None
+        monthly = (ext.index.to_series().diff().dt.days.median() or 1) > 20
+        if monthly:
+            r = (1 + r).groupby(r.index.to_period("M")).prod() - 1
+            r.index = r.index.to_timestamp("M")
+            e = ext.copy()
+            e.index = e.index.to_period("M").to_timestamp("M")
+        else:
+            e = ext
+        j = pd.concat([r.rename("_c"), e], axis=1, join="inner").dropna(axis=1, thresh=int(0.8 * len(r)))
+        j = j.dropna()
+        if len(j) < 24:
+            return {"skipped": f"only {len(j)} overlapping periods with the published factors"}
+        corr = j.drop(columns="_c").corrwith(j["_c"]).dropna()
+        top = corr.abs().idxmax()
+        picks = list(corr.abs().sort_values(ascending=False).index[:max_factors])
+        reg = stats.ols_alpha(j["_c"].to_numpy(), j[picks].to_numpy())
+        return {"top": top, "top_corr": float(corr[top]), "max_abs_corr": float(abs(corr[top])),
+                "t_alpha": reg["t_alpha"], "n_factors": len(picks), "periods": int(len(j)),
+                "frequency": "monthly" if monthly else "daily"}
 
     # ------------------------------------------------------------ logging
     def _record(self, verdict, card, campaign, sig, net):
